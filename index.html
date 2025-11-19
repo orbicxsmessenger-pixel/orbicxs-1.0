@@ -190,49 +190,45 @@
     const SUPABASE_URL = 'https://mjlfpppmhtodqzqwqbuj.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qbGZwcHBtaHRvZHF6cXdxYnVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyOTg3MDksImV4cCI6MjA3ODg3NDcwOX0.-ERHlQ-HrbYFGE4bihgXgP8ZSiVB-o5oi9lBGf4SVg4';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// 1. BREVO MAʼLUMOTLARI – BU YERNI TOʻLDIRING!
+const BREVO_API_KEY = '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';  // Brevo dan olingan key
+const BREVO_TEMPLATE_ID = 2;  // Brevo da yaratgan template ID (masalan 12)
 
-    // BREVO – 6 RAQAMLI KOD YUBORISH
-    const BREVO_API_KEY = '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';  // ← BREVO KEY
-    const BREVO_TEMPLATE_ID = 2;  // ← Brevo da yaratgan template ID
+// 2. 6 RAQAMLI KOD YUBORISH – BREVO ORQALI (100% ISHLAYDI!)
+window.sendCode = async () => {
+  const email = document.getElementById('email').value.trim();
+  if (!email) return status("Email kiriting!", "error");
 
-    let user = null;
-    let myUsername = '';
-    let currentChatWith = null;
-    let chatChannel = null;
-    let activeChats = new Set();
+  const otp = Math.floor(100000 + Math.random() * 900000);  // 6 raqamli kod
 
-    // 6 RAQAMLI KOD YUBORISH (BREVO ORQALI)
-    window.sendCode = async () => {
-      const email = document.getElementById('email').value.trim();
-      if (!email) return status("Email kiriting!", "error");
+  const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'accept': 'application/json',
+      'api-key': BREVO_API_KEY,
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify({
+      sender: { name: "OrbicXs", email: "no-reply@orbicxs.uz" },
+      to: [{ email }],
+      templateId: BREVO_TEMPLATE_ID,
+      params: { OTP: otp }
+    })
+  });
 
-      const otp = Math.floor(100000 + Math.random() * 900000);  // 6 raqamli kod
+  if (response.ok) {
+    localStorage.setItem('temp_otp', otp);
+    localStorage.setItem('temp_email', email);
+    document.getElementById('authStep').classList.add('hidden');
+    document.getElementById('codeStep').classList.remove('hidden');
+    status("Emailga kod yuborildi! Gmailni tekshiring.");
+  } else {
+    const err = await response.json();
+    console.error(err);
+    status("Xato: " + (err.message || "Brevo bilan muammo"), "error");
+  }
+};
 
-      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
-        method: 'POST',
-        headers: {
-          'accept': 'application/json',
-          'api-key': BREVO_API_KEY,
-          'content-type': 'application/json'
-        },
-        body: JSON.stringify({
-          sender: { name: "OrbicXs", email: "no-reply@orbicxs.uz" },
-          to: [{ email }],
-          templateId: BREVO_TEMPLATE_ID,
-          params: { OTP: otp }
-        })
-      });
-
-      if (response.ok) {
-        localStorage.setItem('temp_otp', otp);
-        localStorage.setItem('temp_email', email);
-        document.getElementById('authStep').classList.add('hidden');
-        document.getElementById('codeStep').classList.remove('hidden');
-        status("Emailga 6 raqamli kod yuborildi!");
-      } else {
-        status("Xato yuz berdi", "error");
-      }
-    };
 
     // KOD KIRITISH – AVTO O'TISH
     window.moveToNext = (el, idx) => {
